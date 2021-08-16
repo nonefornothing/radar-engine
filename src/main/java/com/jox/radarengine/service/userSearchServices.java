@@ -1,4 +1,4 @@
-package com.jox.radarengine.Service;
+package com.jox.radarengine.service;
 
 public class userSearchServices {
 }
