@@ -30,10 +30,8 @@ public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
     @Value("${elasticsearch.password}")
     private String password;
 
-    @Override
     @Bean
     public RestHighLevelClient elasticsearchClient() {
-
 
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY,
