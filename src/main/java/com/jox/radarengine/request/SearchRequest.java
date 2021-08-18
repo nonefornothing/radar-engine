@@ -1,14 +1,8 @@
-package com.jox.radarengine.response;
+package com.jox.radarengine.request;
 
 import com.jox.radarengine.model.LinkageData;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
-@AllArgsConstructor
-public class SearchResponse {
+public class SearchRequest {
 
     private String name;
     private String npwp;
@@ -16,4 +10,5 @@ public class SearchResponse {
     private String siup;
     private String id;
     private LinkageData linkageData;
+
 }
