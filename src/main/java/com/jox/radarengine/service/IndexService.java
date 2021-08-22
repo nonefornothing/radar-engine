@@ -2,12 +2,12 @@ package com.jox.radarengine.service;
 
 public interface IndexService {
 
-    public String createIndex(String indexName);
+    public Boolean createIndex(String indexName) throws Exception;
 
-    public String checkExistingIndex(String indexName);
+    public Boolean checkExistingIndex(String indexName);
 
-    public String resetDataIndex(String indexName);
+    public Boolean resetDataIndex(String indexName);
 
-    public String deleteIndex(String indexName);
+    public Boolean deleteIndex(String indexName);
 
 }

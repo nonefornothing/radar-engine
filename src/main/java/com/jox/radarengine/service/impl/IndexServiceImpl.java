@@ -1,29 +1,32 @@
 package com.jox.radarengine.service.impl;
 
-import com.jox.radarengine.model.UserData;
+import com.jox.radarengine.businesslogic.IndexOperationsLogic;
 import com.jox.radarengine.service.IndexService;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.math.BigDecimal;
 
 public class IndexServiceImpl implements IndexService {
 
+    @Autowired
+    IndexOperationsLogic indexOperationsLogic;
+
     @Override
-    public String createIndex(String indexName) {
-        return null;
+    public Boolean createIndex(String indexName) {
+        return indexOperationsLogic.createIndex(indexName);
     }
 
     @Override
-    public String checkExistingIndex(String indexName) {
-        return null;
+    public Boolean checkExistingIndex(String indexName) {
+        return indexOperationsLogic.checkExistingIndex(indexName);
     }
 
     @Override
-    public String resetDataIndex(String indexName) {
-        return null;
+    public Boolean resetDataIndex(String indexName) {
+        return indexOperationsLogic.resetDataIndex(indexName);
     }
 
     @Override
-    public String deleteIndex(String indexName) {
-        return null;
+    public Boolean deleteIndex(String indexName) {
+        return indexOperationsLogic.deleteIndex(indexName);
     }
 }

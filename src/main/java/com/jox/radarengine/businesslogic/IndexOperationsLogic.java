@@ -21,7 +21,8 @@ public class IndexOperationsLogic {
 
     private final RestHighLevelClient client = null;
 
-    public boolean createIndex(String indexName) throws Exception {
+    @PostMapping("/create/{indexName}")
+    public Boolean createIndex(@PathVariable String indexName) {
         try {
             CreateIndexRequest createIndexRequest = new CreateIndexRequest(indexName);
             createIndexRequest.settings(
@@ -57,7 +58,7 @@ public class IndexOperationsLogic {
     }
 
     @PostMapping("/reset/{indexName}")
-    public Boolean resetDataIndex(String indexName) throws IOException {
+    public Boolean resetDataIndex(@PathVariable String indexName) {
         try {
             DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
             deleteIndexRequest.timeout(TimeValue.timeValueMinutes(2));
