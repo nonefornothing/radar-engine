@@ -23,20 +23,22 @@ public class IndexOperationsLogic {
 
     public boolean createIndex(String indexName) throws Exception {
         try {
-            DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
-            client.indices().delete(deleteIndexRequest, RequestOptions.DEFAULT); // 1
-        } catch (Exception ignored) {
-            return false;
+            CreateIndexRequest createIndexRequest = new CreateIndexRequest(indexName);
+            createIndexRequest.settings(
+                    Settings.builder().put("index.number_of_shards", 1)
+                            .put("index.number_of_replicas", 0));
+            CreateIndexResponse createIndexResponse = client.indices().create(createIndexRequest, RequestOptions.DEFAULT); // 2
+            boolean acknowledgedCreate = createIndexResponse.isAcknowledged();
+            if (acknowledgedCreate == true){
+                return true;
+            }
+        }catch (Exception exception){
+            exception.printStackTrace();
         }
-        CreateIndexRequest createIndexRequest = new CreateIndexRequest(indexName);
-        createIndexRequest.settings(
-                Settings.builder().put("index.number_of_shards", 1)
-                        .put("index.number_of_replicas", 0));
-        client.indices().create(createIndexRequest, RequestOptions.DEFAULT); // 2
-        return true;
+        return false;
     }
 
-    @PostMapping("/delete/{indexName}")
+    @PostMapping("/check/{indexName}")
     public Boolean checkExistingIndex(@PathVariable String indexName){
         try {
             GetIndexRequest checkIndexRequest = new GetIndexRequest(indexName);
