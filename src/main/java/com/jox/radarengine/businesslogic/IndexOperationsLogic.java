@@ -6,14 +6,12 @@ import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.rest.RestStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -38,30 +36,56 @@ public class IndexOperationsLogic {
         return true;
     }
 
-    public Boolean checkExistingIndex(String indexName){
+    @PostMapping("/delete/{indexName}")
+    public Boolean checkExistingIndex(@PathVariable String indexName){
         try {
             GetIndexRequest checkIndexRequest = new GetIndexRequest(indexName);
             checkIndexRequest.local(false);
             checkIndexRequest.humanReadable(true);
             checkIndexRequest.includeDefaults(false);
             checkIndexRequest.indicesOptions();
-            boolean exists = client.indices().exists(checkIndexRequest, RequestOptions.DEFAULT);
+            boolean isExists = client.indices().exists(checkIndexRequest, RequestOptions.DEFAULT);
+            if (isExists == true){
+                return true;
+            }
         }catch (ElasticsearchException | IOException exception){
             exception.printStackTrace();
-            return exception.toString();
         }
-        return "index exist in elasticsearch";
+        return false;
     }
 
-    public Boolean resetDataIndex(String indexName) {
-        return null;
+    @PostMapping("/reset/{indexName}")
+    public Boolean resetDataIndex(String indexName) throws IOException {
+        try {
+            DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
+            deleteIndexRequest.timeout(TimeValue.timeValueMinutes(2));
+            deleteIndexRequest.masterNodeTimeout(TimeValue.timeValueMinutes(1));
+            AcknowledgedResponse deleteIndexResponse = client.indices().delete(deleteIndexRequest, RequestOptions.DEFAULT);
+            boolean acknowledgedDelete = deleteIndexResponse.isAcknowledged();
+            if(acknowledgedDelete == true){
+                try {
+                    CreateIndexRequest createIndexRequest = new CreateIndexRequest(indexName);
+                    createIndexRequest.settings(
+                            Settings.builder().put("index.number_of_shards", 1)
+                                    .put("index.number_of_replicas", 0));
+                    CreateIndexResponse createIndexResponse = client.indices().create(createIndexRequest, RequestOptions.DEFAULT); // 2
+                    boolean acknowledgedCreate = createIndexResponse.isAcknowledged();
+                    if (acknowledgedCreate == true){
+                        return true;
+                    }
+                }catch (Exception exception){
+                    exception.printStackTrace();
+                }
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        return false;
     }
 
     @DeleteMapping("/delete/{indexName}")
     public Boolean deleteIndex(@PathVariable String indexName) {
         try {
-
-            AcknowledgedResponse isCreated = null;
             DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
             deleteIndexRequest.timeout(TimeValue.timeValueMinutes(2));
             deleteIndexRequest.masterNodeTimeout(TimeValue.timeValueMinutes(1));
@@ -75,6 +99,7 @@ public class IndexOperationsLogic {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+        return false;
     }
 
 }
