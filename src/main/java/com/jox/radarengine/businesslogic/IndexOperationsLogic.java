@@ -2,25 +2,31 @@ package com.jox.radarengine.businesslogic;
 
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.rest.RestStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 
-
+@RestController
+@RequestMapping("/index")
 public class IndexOperationsLogic {
 
-    private final RestHighLevelClient restHighLevelClient = null;
+    private final RestHighLevelClient client = null;
 
     public boolean createIndex(String indexName) throws Exception {
         try {
             DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
-            restHighLevelClient.indices().delete(deleteIndexRequest, RequestOptions.DEFAULT); // 1
+            client.indices().delete(deleteIndexRequest, RequestOptions.DEFAULT); // 1
         } catch (Exception ignored) {
             return false;
         }
@@ -28,34 +34,47 @@ public class IndexOperationsLogic {
         createIndexRequest.settings(
                 Settings.builder().put("index.number_of_shards", 1)
                         .put("index.number_of_replicas", 0));
-        restHighLevelClient.indices().create(createIndexRequest, RequestOptions.DEFAULT); // 2
+        client.indices().create(createIndexRequest, RequestOptions.DEFAULT); // 2
         return true;
     }
 
-    public String checkExistingIndex(String index){
-
-        return null;
-    }
-
-    public String resetDataIndex(String indexName) {
-        return null;
-    }
-
-    public String deleteIndex(String indexName) {
+    public Boolean checkExistingIndex(String indexName){
         try {
+            GetIndexRequest checkIndexRequest = new GetIndexRequest(indexName);
+            checkIndexRequest.local(false);
+            checkIndexRequest.humanReadable(true);
+            checkIndexRequest.includeDefaults(false);
+            checkIndexRequest.indicesOptions();
+            boolean exists = client.indices().exists(checkIndexRequest, RequestOptions.DEFAULT);
+        }catch (ElasticsearchException | IOException exception){
+            exception.printStackTrace();
+            return exception.toString();
+        }
+        return "index exist in elasticsearch";
+    }
+
+    public Boolean resetDataIndex(String indexName) {
+        return null;
+    }
+
+    @DeleteMapping("/delete/{indexName}")
+    public Boolean deleteIndex(@PathVariable String indexName) {
+        try {
+
+            AcknowledgedResponse isCreated = null;
             DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
             deleteIndexRequest.timeout(TimeValue.timeValueMinutes(2));
             deleteIndexRequest.masterNodeTimeout(TimeValue.timeValueMinutes(1));
-            restHighLevelClient.indices().delete(deleteIndexRequest, RequestOptions.DEFAULT);
+            AcknowledgedResponse deleteIndexResponse = client.indices().delete(deleteIndexRequest, RequestOptions.DEFAULT);
+            boolean acknowledged = deleteIndexResponse.isAcknowledged();
+            return acknowledged;
         } catch (ElasticsearchException exception) {
             if (exception.status() == RestStatus.NOT_FOUND){
-                return "Index not found";
+                exception.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return e.toString();
+        } catch (IOException exception) {
+            exception.printStackTrace();
         }
-        return "Delete Success";
     }
 
 }
